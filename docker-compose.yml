@@ -4,45 +4,70 @@ services:
     image: postgres:16
     container_name: picip_postgres
     restart: always
+
     env_file:
       - .env
+
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init:/docker-entrypoint-initdb.d
+
     ports:
       - "5432:5432"
 
 
   python:
-    image: python:3.12-slim
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
     container_name: picip_python
+
+    environment:
+      PYTHONUNBUFFERED: 1
+
     restart: always
+
     working_dir: /app
+
     volumes:
       - ./backend:/app
-    command:
-      - python
-      - -c
-      - "print('PICIP Python Engine Ready')"
+
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_started
 
 
   react:
     image: node:20
     container_name: picip_react
+
     restart: always
+
     working_dir: /app
+
     volumes:
       - ./frontend:/app
+
     command:
       - sh
       - -c
       - "echo PICIP React Dashboard Ready && tail -f /dev/null"
+
     ports:
       - "3000:3000"
 
@@ -50,16 +75,35 @@ services:
   node:
     image: node:20
     container_name: picip_node
+
     restart: always
+
     working_dir: /app
+
     volumes:
       - ./notifications:/app
+
     command:
       - sh
       - -c
       - "echo PICIP Notification Service Ready && tail -f /dev/null"
 
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: picip_ollama
+
+    restart: always
+
+    ports:
+      - "11434:11434"
+
+    volumes:
+      - ollama_data:/root/.ollama
+
+
 volumes:
 
   postgres_data:
+
+  ollama_data:
