@@ -71,9 +71,15 @@ CREATE TABLE ai_analysis (
 
     sentiment_score DECIMAL(5,2),
 
+    classification TEXT,
+
     topics TEXT,
 
     risk_level VARCHAR(20),
+
+    risk_indicators TEXT,
+
+    engine VARCHAR(100),
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

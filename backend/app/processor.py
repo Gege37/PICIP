@@ -1,4 +1,6 @@
 from database import get_connection
+from services.ai_service import ai_service
+from intelligence.storage import save_analysis
 
 
 def save_article(article, source_id=None):
@@ -6,74 +8,110 @@ def save_article(article, source_id=None):
     conn = get_connection()
     cur = conn.cursor()
 
+    try:
 
-    cur.execute(
-        """
-        SELECT id
-        FROM articles
-        WHERE url = %s;
-        """,
-        (
-            article["url"],
+        #
+        # Duplicate check
+        #
+
+        cur.execute(
+            """
+            SELECT id
+            FROM articles
+            WHERE url = %s;
+            """,
+            (
+                article["url"],
+            )
         )
-    )
 
+        existing = cur.fetchone()
 
-    existing = cur.fetchone()
+        if existing:
 
+            print(
+                "Duplicate skipped:",
+                article["title"]
+            )
 
-    if existing:
+            cur.close()
+            conn.close()
 
-        cur.close()
-        conn.close()
+            return existing[0]
+
+        #
+        # Store article
+        #
+
+        cur.execute(
+            """
+            INSERT INTO articles
+            (
+                source_id,
+                title,
+                content,
+                url,
+                language
+            )
+            VALUES
+            (
+                %s,%s,%s,%s,%s
+            )
+            RETURNING id;
+            """,
+            (
+                source_id,
+                article["title"],
+                article["content"],
+                article["url"],
+                "unknown"
+            )
+        )
+
+        article_id = cur.fetchone()[0]
 
         print(
-            "Duplicate skipped:",
+            "Saved article:",
+            article_id,
             article["title"]
         )
 
-        return existing[0]
+        #
+        # Intelligence Layer
+        #
 
-
-    cur.execute(
-        """
-        INSERT INTO articles
-        (
-            source_id,
-            title,
-            content,
-            url,
-            language
+        analysis = ai_service.analyze_article(
+            {
+                "text": article["content"]
+            }
         )
-        VALUES
-        (
-            %s,%s,%s,%s,%s
+
+        save_analysis(
+            conn,
+            article_id,
+            analysis
         )
-        RETURNING id;
-        """,
-        (
-            source_id,
-            article["title"],
-            article["content"],
-            article["url"],
-            "unknown"
+
+        #
+        # Commit everything together
+        #
+
+        conn.commit()
+
+        return article_id
+
+    except Exception as e:
+
+        conn.rollback()
+
+        print(
+            "Transaction rolled back:",
+            e
         )
-    )
 
+        raise
 
-    article_id = cur.fetchone()[0]
+    finally:
 
-    conn.commit()
-
-    cur.close()
-    conn.close()
-
-
-    print(
-        "Saved article:",
-        article_id,
-        article["title"]
-    )
-
-
-    return article_id
+        cur.close()
+        conn.close()
