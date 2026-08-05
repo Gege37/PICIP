@@ -4,4 +4,4 @@ beautifulsoup4
 feedparser
 python-dotenv
 openai
-beautifulsoup4
+google-api-python-client

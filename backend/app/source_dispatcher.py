@@ -1,6 +1,6 @@
 from collector import collect_rss
 from web_collector import collect_web
-
+from youtube_collector import collect_youtube
 
 def collect_source(source):
 
@@ -42,13 +42,15 @@ def collect_source(source):
 
         return [], "WEB", "FAILED"
 
+    elif source_type == "YOUTUBE":
+
+        articles = collect_youtube(source_url)
+
+        return articles, "YOUTUBE", "OK"
+
     elif source_type == "TELEGRAM":
 
         return [], "TELEGRAM", "NOT_IMPLEMENTED"
-
-    elif source_type == "YOUTUBE":
-
-        return [], "YOUTUBE", "NOT_IMPLEMENTED"
 
     elif source_type == "FACEBOOK":
 

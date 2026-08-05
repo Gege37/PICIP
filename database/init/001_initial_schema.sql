@@ -1,6 +1,7 @@
 -- =====================================
 -- PICIP DATABASE FOUNDATION
--- Version 1.0
+-- Version 1.1
+-- Phase 5 Intelligence Schema
 -- =====================================
 
 
@@ -71,13 +72,12 @@ CREATE TABLE ai_analysis (
 
     sentiment_score DECIMAL(5,2),
 
-    classification TEXT,
+    category VARCHAR(100),
+
+    impact VARCHAR(30),
 
     topics TEXT,
 
-    risk_level VARCHAR(20),
-
-    risk_indicators TEXT,
 
     engine VARCHAR(100),
 
@@ -92,9 +92,9 @@ CREATE TABLE alerts (
 
     article_id INTEGER REFERENCES articles(id),
 
-    alert_type VARCHAR(50),
+    alert_level INTEGER,
 
-    severity VARCHAR(20),
+    alert_type VARCHAR(30),
 
     message TEXT,
 

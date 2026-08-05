@@ -35,6 +35,9 @@ services:
 
     container_name: picip_python
 
+    env_file:
+      - .env
+
     environment:
       PYTHONUNBUFFERED: 1
 

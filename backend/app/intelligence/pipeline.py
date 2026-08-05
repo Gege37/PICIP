@@ -6,21 +6,32 @@ from .summarizer import summarizer
 from .sentiment import sentiment
 from .classifier import classifier
 from .topic_detector import topic_detector
-from .risk_analyzer import risk_analyzer
+from .impact_analyzer import impact_analyzer
 
 
 class IntelligencePipeline:
 
-    def process(self, article: dict):
+    def process(self, article):
 
-        text = article.get("text", "")
+        text = article.get("text","")
 
         return {
-            "summary": summarizer.process(text).data,
-            "sentiment": sentiment.process(text).data,
-            "classification": classifier.process(text).data,
-            "topics": topic_detector.process(text).data,
-            "risk": risk_analyzer.process(text).data,
+
+            "summary":
+                summarizer.process(text).data,
+
+            "sentiment":
+                sentiment.process(text).data,
+
+            "category":
+                classifier.process(text).data,
+
+            "impact":
+                impact_analyzer.process(text).data,
+
+            "topics":
+                topic_detector.process(text).data
+
         }
 
 

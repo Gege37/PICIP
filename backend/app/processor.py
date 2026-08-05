@@ -1,6 +1,11 @@
 from database import get_connection
+
 from services.ai_service import ai_service
+
 from intelligence.storage import save_analysis
+
+from alerts.rule_engine import rule_engine
+from alerts.storage import save_alert
 
 
 def save_article(article, source_id=None):
@@ -18,14 +23,14 @@ def save_article(article, source_id=None):
             """
             SELECT id
             FROM articles
-            WHERE url = %s;
+            WHERE url=%s;
             """,
             (
                 article["url"],
             )
         )
 
-        existing = cur.fetchone()
+        existing=cur.fetchone()
 
         if existing:
 
@@ -34,13 +39,10 @@ def save_article(article, source_id=None):
                 article["title"]
             )
 
-            cur.close()
-            conn.close()
-
             return existing[0]
 
         #
-        # Store article
+        # Save article
         #
 
         cur.execute(
@@ -68,7 +70,7 @@ def save_article(article, source_id=None):
             )
         )
 
-        article_id = cur.fetchone()[0]
+        article_id=cur.fetchone()[0]
 
         print(
             "Saved article:",
@@ -77,12 +79,12 @@ def save_article(article, source_id=None):
         )
 
         #
-        # Intelligence Layer
+        # AI
         #
 
-        analysis = ai_service.analyze_article(
+        analysis=ai_service.analyze_article(
             {
-                "text": article["content"]
+                "text":article["content"]
             }
         )
 
@@ -93,8 +95,18 @@ def save_article(article, source_id=None):
         )
 
         #
-        # Commit everything together
+        # Alert Engine
         #
+
+        alert=rule_engine.evaluate(
+            analysis
+        )
+
+        save_alert(
+            conn,
+            article_id,
+            alert
+        )
 
         conn.commit()
 

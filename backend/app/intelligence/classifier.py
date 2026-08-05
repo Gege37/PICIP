@@ -1,42 +1,69 @@
 """
-PICIP Article Classification
+PICIP Category Classifier
 """
 
-from .base_ai import AIEngine,AIResult
 
+from .base_ai import AIEngine, AIResult
 
 
 class Classifier(AIEngine):
 
-    name="classifier"
+
+    name = "classifier"
 
 
-    categories={
 
-        "politics":[
+    categories = {
+
+
+        "Security":[
+            "police",
+            "crime",
+            "attack",
+            "war",
+            "armed",
+            "security"
+        ],
+
+
+        "Politics":[
             "government",
             "president",
+            "parliament",
             "minister"
         ],
 
-        "economy":[
+
+        "Economy":[
             "market",
             "investment",
-            "business"
+            "business",
+            "inflation"
         ],
 
-        "mining":[
+
+        "Health":[
+            "hospital",
+            "cholera",
+            "health",
+            "outbreak"
+        ],
+
+
+        "Diplomacy":[
+            "embassy",
+            "summit",
+            "african union"
+        ],
+
+
+        "Mining":[
+            "mine",
             "diamond",
             "gold",
-            "mine",
             "drilling"
-        ],
-
-        "security":[
-            "police",
-            "crime",
-            "attack"
         ]
+
 
     }
 
@@ -46,23 +73,27 @@ class Classifier(AIEngine):
 
         text=text.lower()
 
-        result=[]
+
+        category="General"
 
 
-        for category,keywords in self.categories.items():
+        for name, words in self.categories.items():
 
-            for keyword in keywords:
+            if any(
+                word in text
+                for word in words
+            ):
 
-                if keyword in text:
-                    result.append(category)
-                    break
+                category=name
+                break
 
 
         return AIResult(
             data={
-                "classification":result
+                "category":category
             }
         )
+
 
 
 classifier=Classifier()
